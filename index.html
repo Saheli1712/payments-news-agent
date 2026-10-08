@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payments News Agent</title>
+    <meta
+      name="description"
+      content="Payments News Agent gathers the latest UPI, RBI, cards, wallets, and fintech news from Economic Times and helps you ask questions about it."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="brand">
+          <span class="brand-mark">₹</span>
+          <span>Payments News Agent</span>
+        </div>
+        <a class="nav-link" href="https://github.com/Saheli1712/payments-news-agent" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero container">
+        <div class="hero-copy">
+          <p class="eyebrow">Economic Times + LangChain</p>
+          <h1>Track the latest payments news without the noise.</h1>
+          <p class="subtitle">
+            Pulls fresh stories covering UPI, NPCI, cards, wallets, fintech, and RBI payment developments from public RSS feeds and turns them into readable summaries and guided research.
+          </p>
+          <div class="cta-row">
+            <a class="primary-btn" href="https://github.com/Saheli1712/payments-news-agent" target="_blank" rel="noreferrer">View project</a>
+            <a class="secondary-btn" href="#features">Explore features</a>
+          </div>
+        </div>
+        <div class="hero-panel">
+          <div class="panel-card">
+            <div class="panel-header">
+              <span class="dot dot-green"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-red"></span>
+            </div>
+            <div class="panel-body">
+              <p class="feed-label">Latest payments headlines</p>
+              <ul>
+                <li>UPI ecosystem updates</li>
+                <li>NPCI rule changes</li>
+                <li>Cards and wallets moves</li>
+                <li>RBI and fintech policy news</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="features container">
+        <div class="section-heading">
+          <p class="eyebrow">What it does</p>
+          <h2>Built for fast scans, smarter summaries, and follow-up questions.</h2>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card">
+            <h3>RSS-first ingestion</h3>
+            <p>Reads public ET feeds instead of scraping page content, with robots.txt checks and rate limiting.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Clean filtering</h3>
+            <p>Retains only payments-focused stories, removes duplicates, and sorts newest updates first.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Claude summaries</h3>
+            <p>Creates a digest of the latest developments with structured AI-generated summaries and links.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Ask-the-agent mode</h3>
+            <p>Query recent payments news and ask follow-up questions with a LangChain-powered research flow.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="container usage">
+        <div class="section-heading">
+          <p class="eyebrow">Quick start</p>
+          <h2>Run locally with a few commands.</h2>
+        </div>
+
+        <pre><code>python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python -m payments_news fetch --hours 24 --limit 10</code></pre>
+      </section>
+    </main>
+  </body>
+</html>
