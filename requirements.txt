@@ -3,4 +3,6 @@ langchain-anthropic>=1.0
 feedparser>=6.0
 requests>=2.31
 beautifulsoup4>=4.12
+fastapi>=0.111.0
+uvicorn>=0.30.0
 pytest>=8.0
