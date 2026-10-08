@@ -1,15 +1,47 @@
-from fastapi import FastAPI
+from pathlib import Path
+
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
+
+from payments_news.fetch import fetch_payments_news
+
+BASE_DIR = Path(__file__).resolve().parent
 
 app = FastAPI(title="Payments News Agent")
-
-app.mount("/static", StaticFiles(directory="."), name="static")
 
 
 @app.get("/")
 async def read_root():
-    return FileResponse("index.html")
+    return FileResponse(BASE_DIR / "index.html")
+
+
+@app.get("/styles.css")
+async def read_stylesheet():
+    return FileResponse(BASE_DIR / "styles.css", media_type="text/css")
+
+
+@app.get("/api/news")
+def get_news(
+    hours: float = Query(default=72, gt=0, le=720),
+    limit: int = Query(default=30, ge=1, le=50),
+):
+    errors: list[str] = []
+    items = fetch_payments_news(hours=hours, limit=limit, errors=errors)
+    if not items and errors:
+        raise HTTPException(
+            status_code=502,
+            detail=(
+                "Could not retrieve payment news from the feeds. "
+                + "Feed errors: "
+                + "; ".join(errors)
+            ),
+        )
+    return {
+        "hours": hours,
+        "count": len(items),
+        "items": [item.to_dict() for item in items],
+        "warnings": errors,
+    }
 
 
 @app.get("/health")

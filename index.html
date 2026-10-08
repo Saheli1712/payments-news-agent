@@ -3,97 +3,181 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Payments News Agent</title>
+    <title>Payments News Extracts</title>
     <meta
       name="description"
-      content="Payments News Agent gathers the latest UPI, RBI, cards, wallets, and fintech news from Economic Times and helps you ask questions about it."
+      content="Read extracted payments news from Economic Times for a time period of your choice."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <header class="topbar">
       <div class="container nav">
-        <div class="brand">
+        <a class="brand" href="/">
           <span class="brand-mark">₹</span>
-          <span>Payments News Agent</span>
-        </div>
-        <a class="nav-link" href="https://github.com/Saheli1712/payments-news-agent" target="_blank" rel="noreferrer">GitHub</a>
+          <span>Payments News</span>
+        </a>
+        <a
+          class="nav-link"
+          href="https://github.com/Saheli1712/payments-news-agent"
+          target="_blank"
+          rel="noreferrer"
+        >Project on GitHub</a>
       </div>
     </header>
 
-    <main>
-      <section class="hero container">
-        <div class="hero-copy">
-          <p class="eyebrow">Economic Times + LangChain</p>
-          <h1>Track the latest payments news without the noise.</h1>
-          <p class="subtitle">
-            Pulls fresh stories covering UPI, NPCI, cards, wallets, fintech, and RBI payment developments from public RSS feeds and turns them into readable summaries and guided research.
-          </p>
-          <div class="cta-row">
-            <a class="primary-btn" href="https://github.com/Saheli1712/payments-news-agent" target="_blank" rel="noreferrer">View project</a>
-            <a class="secondary-btn" href="#features">Explore features</a>
-          </div>
-        </div>
-        <div class="hero-panel">
-          <div class="panel-card">
-            <div class="panel-header">
-              <span class="dot dot-green"></span>
-              <span class="dot dot-yellow"></span>
-              <span class="dot dot-red"></span>
-            </div>
-            <div class="panel-body">
-              <p class="feed-label">Latest payments headlines</p>
-              <ul>
-                <li>UPI ecosystem updates</li>
-                <li>NPCI rule changes</li>
-                <li>Cards and wallets moves</li>
-                <li>RBI and fintech policy news</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
+    <main class="container">
+      <section class="news-page">
+        <p class="eyebrow">Economic Times · UPI · NPCI · fintech · RBI</p>
+        <h1>Payment news extracts</h1>
+        <p class="subtitle">
+          Read the extracted details from recent payment stories. Choose how far
+          back to search; headlines and full-story links are included for context.
+        </p>
 
-      <section id="features" class="features container">
-        <div class="section-heading">
-          <p class="eyebrow">What it does</p>
-          <h2>Built for fast scans, smarter summaries, and follow-up questions.</h2>
-        </div>
+        <form id="filter-form" class="filter-bar">
+          <label for="duration">News from the last</label>
+          <input
+            id="duration"
+            name="duration"
+            type="number"
+            min="1"
+            max="30"
+            value="3"
+            required
+          />
+          <select id="unit" name="unit" aria-label="Duration unit">
+            <option value="24">days</option>
+            <option value="1">hours</option>
+          </select>
+          <button id="load-button" class="primary-btn" type="submit">
+            Get news extracts
+          </button>
+        </form>
 
-        <div class="feature-grid">
-          <article class="feature-card">
-            <h3>RSS-first ingestion</h3>
-            <p>Reads public ET feeds instead of scraping page content, with robots.txt checks and rate limiting.</p>
-          </article>
-          <article class="feature-card">
-            <h3>Clean filtering</h3>
-            <p>Retains only payments-focused stories, removes duplicates, and sorts newest updates first.</p>
-          </article>
-          <article class="feature-card">
-            <h3>Claude summaries</h3>
-            <p>Creates a digest of the latest developments with structured AI-generated summaries and links.</p>
-          </article>
-          <article class="feature-card">
-            <h3>Ask-the-agent mode</h3>
-            <p>Query recent payments news and ask follow-up questions with a LangChain-powered research flow.</p>
-          </article>
+        <div class="results-heading">
+          <h2>Recent stories</h2>
+          <p id="result-count" class="result-count" aria-live="polite"></p>
         </div>
-      </section>
-
-      <section class="container usage">
-        <div class="section-heading">
-          <p class="eyebrow">Quick start</p>
-          <h2>Run locally with a few commands.</h2>
-        </div>
-
-        <pre><code>python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-python -m payments_news fetch --hours 24 --limit 10</code></pre>
+        <p id="status" class="status" role="status" aria-live="polite">
+          Loading payment news…
+        </p>
+        <div id="news-list" class="news-list"></div>
       </section>
     </main>
+
+    <script>
+      const form = document.querySelector("#filter-form");
+      const durationInput = document.querySelector("#duration");
+      const unitSelect = document.querySelector("#unit");
+      const loadButton = document.querySelector("#load-button");
+      const status = document.querySelector("#status");
+      const resultCount = document.querySelector("#result-count");
+      const newsList = document.querySelector("#news-list");
+
+      function formatDate(value) {
+        if (!value) return "Date unavailable";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime())
+          ? "Date unavailable"
+          : date.toLocaleString(undefined, {
+              dateStyle: "medium",
+              timeStyle: "short",
+            });
+      }
+
+      function makeStory(item) {
+        const card = document.createElement("article");
+        card.className = "story-card";
+
+        const meta = document.createElement("p");
+        meta.className = "story-meta";
+        meta.textContent = `${formatDate(item.published)} · ${item.source}`;
+
+        const headline = document.createElement("h3");
+        headline.textContent = item.headline;
+
+        const extract = document.createElement("p");
+        extract.className = "story-extract";
+        extract.textContent =
+          item.summary || "No text extract was provided in the news feed.";
+
+        card.append(meta, headline, extract);
+
+        let articleUrl;
+        try {
+          articleUrl = new URL(item.link);
+        } catch {
+          articleUrl = null;
+        }
+
+        if (articleUrl && ["http:", "https:"].includes(articleUrl.protocol)) {
+          const link = document.createElement("a");
+          link.className = "story-link";
+          link.href = articleUrl.href;
+          link.target = "_blank";
+          link.rel = "noreferrer";
+          link.textContent = "Read full story";
+          card.append(link);
+        }
+
+        return card;
+      }
+
+      async function loadNews(event) {
+        if (event) event.preventDefault();
+        const duration = Number(durationInput.value);
+        const hours = duration * Number(unitSelect.value);
+
+        if (!Number.isInteger(duration) || duration < 1 || hours > 720) {
+          status.textContent = "Choose a duration between 1 hour and 30 days.";
+          resultCount.textContent = "";
+          newsList.replaceChildren();
+          return;
+        }
+
+        loadButton.disabled = true;
+        status.textContent = "Fetching payment news extracts…";
+        resultCount.textContent = "";
+        newsList.replaceChildren();
+
+        try {
+          const response = await fetch(`/api/news?hours=${hours}&limit=30`);
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.detail || "Could not load payment news.");
+          }
+
+          resultCount.textContent = `${data.count} ${data.count === 1 ? "story" : "stories"} · last ${duration} ${unitSelect.selectedOptions[0].text}`;
+          if (data.items.length === 0) {
+            status.textContent = "No payment stories found in that time window.";
+          } else {
+            status.textContent = "";
+            newsList.replaceChildren(...data.items.map(makeStory));
+          }
+
+          if (data.warnings.length) {
+            const warning = document.createElement("p");
+            warning.className = "warning";
+            warning.textContent =
+              "Some news feeds could not be reached; the stories shown may be incomplete.";
+            status.append(warning);
+          }
+        } catch (error) {
+          status.textContent = error.message;
+        } finally {
+          loadButton.disabled = false;
+        }
+      }
+
+      form.addEventListener("submit", loadNews);
+      loadNews();
+    </script>
   </body>
 </html>

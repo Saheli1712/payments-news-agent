@@ -7,6 +7,10 @@ RBI payment rules, fintech) from Economic Times and gives you a list with
 It reads ET's public **RSS feeds** rather than scraping pages, checks `robots.txt`
 before every request, and waits a second between requests.
 
+The Vercel web app displays the feed's extracted story text (not just headlines
+or links). Enter a duration in hours or days to filter recent payment stories;
+the source link is available below each extract.
+
 ## Setup
 
 ```bash
