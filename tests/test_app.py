@@ -20,8 +20,9 @@ def test_news_api_returns_extracts_for_selected_window(monkeypatch):
     )
     requested = {}
 
-    def fake_fetch_payments_news(hours, limit, errors):
+    def fake_fetch_payments_news(hours, limit, errors, successful_feeds):
         requested.update(hours=hours, limit=limit)
+        successful_feeds.append("ET test")
         return [item]
 
     monkeypatch.setattr(app, "fetch_payments_news", fake_fetch_payments_news)
@@ -44,8 +45,8 @@ def test_news_api_rejects_invalid_duration():
     assert response.status_code == 422
 
 
-def test_news_api_reports_feed_errors(monkeypatch):
-    def fake_fetch_payments_news(hours, limit, errors):
+def test_news_api_reports_feed_errors_when_all_feeds_fail(monkeypatch):
+    def fake_fetch_payments_news(hours, limit, errors, successful_feeds):
         errors.append("ET feed: 403 Forbidden")
         return []
 
@@ -55,6 +56,21 @@ def test_news_api_reports_feed_errors(monkeypatch):
 
     assert response.status_code == 502
     assert "403 Forbidden" in response.json()["detail"]
+
+
+def test_news_api_returns_empty_result_and_warnings_for_partial_feed_failures(monkeypatch):
+    def fake_fetch_payments_news(hours, limit, errors, successful_feeds):
+        errors.append("ETBFSI: 403 Forbidden")
+        successful_feeds.append("ET Banking")
+        return []
+
+    monkeypatch.setattr(app, "fetch_payments_news", fake_fetch_payments_news)
+
+    response = client.get("/api/news")
+
+    assert response.status_code == 200
+    assert response.json()["count"] == 0
+    assert response.json()["warnings"] == ["ETBFSI: 403 Forbidden"]
 
 
 def test_homepage_and_stylesheet_are_served():

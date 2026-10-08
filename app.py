@@ -26,8 +26,14 @@ def get_news(
     limit: int = Query(default=30, ge=1, le=50),
 ):
     errors: list[str] = []
-    items = fetch_payments_news(hours=hours, limit=limit, errors=errors)
-    if not items and errors:
+    successful_feeds: list[str] = []
+    items = fetch_payments_news(
+        hours=hours,
+        limit=limit,
+        errors=errors,
+        successful_feeds=successful_feeds,
+    )
+    if not successful_feeds and errors:
         raise HTTPException(
             status_code=502,
             detail=(

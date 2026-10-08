@@ -23,6 +23,20 @@ _KEYWORD_RE = re.compile(
     r"\b(" + "|".join(re.escape(k) for k in sorted(PAYMENTS_KEYWORDS, key=len, reverse=True)) + r")s?\b",
     re.IGNORECASE,
 )
+_PAYMENT_KEYWORD_RE = re.compile(
+    r"\b("
+    + "|".join(
+        re.escape(k)
+        for k in sorted((keyword for keyword in PAYMENTS_KEYWORDS if keyword != "visa"), key=len, reverse=True)
+    )
+    + r")s?\b",
+    re.IGNORECASE,
+)
+_WORK_VISA_RE = re.compile(
+    r"\b(?:work\s+visas?|visa\s+holders?|employment\s+visa(?:\s+programmes?)?|"
+    r"h[- ]?1b|immigration|permanent residency|green card)\b",
+    re.IGNORECASE,
+)
 
 
 @dataclass
@@ -88,7 +102,10 @@ def clean_text(raw: str) -> str:
 def is_payments_story(item: NewsItem) -> bool:
     if item.source in PAYMENTS_ONLY_FEEDS:
         return True
-    return bool(_KEYWORD_RE.search(f"{item.headline} {item.summary}"))
+    text = f"{item.headline} {item.summary}"
+    if _WORK_VISA_RE.search(text) and not _PAYMENT_KEYWORD_RE.search(text):
+        return False
+    return bool(_KEYWORD_RE.search(text))
 
 
 def parse_feed(content: bytes | str, source: str) -> list[NewsItem]:
@@ -128,29 +145,33 @@ def fetch_payments_news(
     discover: bool = True,
     fetcher: Fetcher | None = None,
     errors: list[str] | None = None,
+    successful_feeds: list[str] | None = None,
 ) -> list[NewsItem]:
     """Latest payments stories across ET feeds, newest first, de-duplicated."""
     fetcher = fetcher or Fetcher()
     feeds = dict(feeds or FEEDS)
     errors = errors if errors is not None else []
+    successful_feeds = successful_feeds if successful_feeds is not None else []
 
     items: list[NewsItem] = []
     for name, url in feeds.items():
         try:
             r = fetcher.get(url)
             r.raise_for_status()
+            successful_feeds.append(name)
             items.extend(parse_feed(r.content, name))
         except (requests.RequestException, PermissionError) as exc:
             errors.append(f"{name}: {exc}")
 
     # If every configured feed failed (ET changed its feed IDs), try the RSS index.
-    if not items and discover:
+    if not successful_feeds and discover:
         for name, url in discover_feeds(fetcher).items():
             if url in feeds.values():
                 continue
             try:
                 r = fetcher.get(url)
                 r.raise_for_status()
+                successful_feeds.append(name)
                 items.extend(parse_feed(r.content, name))
             except (requests.RequestException, PermissionError) as exc:
                 errors.append(f"{name}: {exc}")

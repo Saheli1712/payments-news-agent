@@ -211,8 +211,17 @@ h1 {
   line-height: 1.4;
 }
 
+.extract-label {
+  margin: 0.8rem 0 0;
+  color: var(--brand);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .story-extract {
-  margin: 0.75rem 0 0.9rem;
+  margin: 0.25rem 0 0.9rem;
   color: #d1deed;
   white-space: pre-wrap;
 }

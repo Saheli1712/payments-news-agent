@@ -71,6 +71,26 @@ def test_falls_back_to_rss_index_when_feeds_break():
     assert all("sports" not in c for c in f.session.calls)
 
 
+def test_does_not_discover_feeds_when_a_feed_succeeds_without_payment_stories():
+    empty_feed = b"""<rss><channel><item>
+      <title>Weather forecast</title>
+      <link>https://example.com/weather</link>
+    </item></channel></rss>"""
+    f = fetcher({
+        "https://economictimes.indiatimes.com/robots.txt": FakeResp(200, b"User-agent: *\nAllow: /\n"),
+        "https://economictimes.indiatimes.com/feed": FakeResp(200, empty_feed),
+    })
+
+    items = F.fetch_payments_news(
+        hours=None,
+        feeds={"ET": "https://economictimes.indiatimes.com/feed"},
+        fetcher=f,
+    )
+
+    assert items == []
+    assert "https://economictimes.indiatimes.com/rss.cms" not in f.session.calls
+
+
 def test_hours_window_excludes_old_stories():
     f = fetcher({"https://economictimes.indiatimes.com/": FakeResp(200, FEED)})
     assert F.fetch_payments_news(hours=1, feeds={"A": "https://economictimes.indiatimes.com/a"}, fetcher=f) == []
@@ -80,3 +100,33 @@ def test_hours_window_excludes_old_stories():
                                            ("Season scorecard", False), ("Steel output rises", False)])
 def test_keyword_match(text, expected):
     assert F.is_payments_story(F.NewsItem(text, "l", None, "", "x")) is expected
+
+
+def test_keeps_card_network_visa_story():
+    item = F.NewsItem("Visa expands credit card payments", "l", None, "", "ET Tech Fintech")
+
+    assert F.is_payments_story(item)
+
+
+def test_excludes_work_visa_story_that_only_matches_the_visa_keyword():
+    item = F.NewsItem(
+        "Trump proposes to end H-1B grace period",
+        "l",
+        None,
+        "The proposal affects work visa holders.",
+        "ET Tech Fintech",
+    )
+
+    assert not F.is_payments_story(item)
+    assert not F.is_payments_story(item)
+
+def test_excludes_employment_visa_story_that_only_matches_the_visa_keyword():
+    item = F.NewsItem(
+        "Cognizant PERM suspension raises talent retention concerns",
+        "l",
+        None,
+        "The investigation concerns employment visa programmes.",
+        "ET Tech Fintech",
+    )
+
+    assert not F.is_payments_story(item)
