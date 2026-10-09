@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Payments News Extracts</title>
+    <title>Payments and Cards Related News</title>
     <meta
       name="description"
-      content="Read extracted payments news from Economic Times for a time period of your choice."
+      content="Recent payments and card industry news from India and around the world, including UPI, wallets, ACH, RTGS, RTP, and cross-border payments."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -21,7 +21,7 @@
       <div class="container nav">
         <a class="brand" href="/">
           <span class="brand-mark">₹</span>
-          <span>Payments News</span>
+          <span>Payments &amp; Cards</span>
         </a>
         <a
           class="nav-link"
@@ -34,11 +34,13 @@
 
     <main class="container">
       <section class="news-page">
-        <p class="eyebrow">Economic Times · UPI · NPCI · fintech · RBI</p>
-        <h1>Payment news extracts</h1>
+        <p class="eyebrow">India and global coverage · ET · Mint · Financial Times</p>
+        <h1>Payments and cards related news</h1>
         <p class="subtitle">
-          Read the extracted details from recent payment stories. Choose how far
-          back to search; headlines and full-story links are included for context.
+          Recent articles about cards, UPI, wallets, ACH, RTGS, real-time payments,
+          and cross-border payment rails. Choose a time window to see every matching
+          story available from Economic Times, Mint, Financial Times, Payments Dive,
+          and PYMNTS feeds.
         </p>
 
         <form id="filter-form" class="filter-bar">
@@ -57,12 +59,12 @@
             <option value="1">hours</option>
           </select>
           <button id="load-button" class="primary-btn" type="submit">
-            Get news extracts
+            Load recent articles
           </button>
         </form>
 
         <div class="results-heading">
-          <h2>Recent stories</h2>
+          <h2>Recent articles</h2>
           <p id="result-count" class="result-count" aria-live="polite"></p>
         </div>
         <p id="status" class="status" role="status" aria-live="polite">
@@ -152,7 +154,7 @@
         newsList.replaceChildren();
 
         try {
-          const response = await fetch(`/api/news?hours=${hours}&limit=30`);
+          const response = await fetch(`/api/news?hours=${hours}`);
           const data = await response.json();
           if (!response.ok) {
             throw new Error(data.detail || "Could not load payment news.");

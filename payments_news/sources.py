@@ -1,33 +1,43 @@
-"""Economic Times feeds to read, and the words that make a story "payments" news.
+"""Publisher RSS feeds and the words that make a story payments news.
 
-Feed IDs on ET change from time to time. If one of these stops working, open
-https://economictimes.indiatimes.com/rss.cms in a browser, copy the new feed URL
-and paste it here (or pass --feed on the command line).
+ET feed IDs can change from time to time. If one stops working, check
+https://economictimes.indiatimes.com/rss.cms for its replacement.
 """
 
 ET_RSS_INDEX = "https://economictimes.indiatimes.com/rss.cms"
 
 FEEDS = {
-    # ETBFSI (ET's banking, financial services and insurance site)
-    "ETBFSI Payments": "https://bfsi.economictimes.indiatimes.com/rss/payments",
-    "ETBFSI Fintech": "https://bfsi.economictimes.indiatimes.com/rss/fintech",
-    "ETBFSI Top stories": "https://bfsi.economictimes.indiatimes.com/rss/topstories",
-    # Main Economic Times site
+    # India-focused publisher feeds
     "ET Banking/Finance": "https://economictimes.indiatimes.com/industry/banking/finance/rssfeeds/13358319.cms",
     "ET Tech Fintech": "https://economictimes.indiatimes.com/tech/fintech/rssfeeds/78570530.cms",
+    "Mint Industry": "https://www.livemint.com/rss/industry",
+    "Mint Money": "https://www.livemint.com/rss/money",
+    # Global financial and payment-industry publisher feeds
+    "Financial Times Financial Services": "https://www.ft.com/rss/companies/financial-services",
+    "Payments Dive": "https://www.paymentsdive.com/feeds/news/",
+    "PYMNTS": "https://www.pymnts.com/feed/",
 }
 
-# Feeds whose stories are all payments stories, so no keyword filter is applied.
-PAYMENTS_ONLY_FEEDS = {"ETBFSI Payments"}
+# Publisher feeds focused exclusively on the payment industry.
+PAYMENTS_ONLY_FEEDS = {"Payments Dive"}
 
 # Lower-case keywords; a story matches if any appears in its title or summary.
 PAYMENTS_KEYWORDS = [
-    "payment", "payments", "upi", "npci", "neft", "rtgs", "imps", "bbps",
-    "rupay", "wallet", "prepaid", "ppi", "credit card", "debit card", "card network",
-    "visa", "mastercard", "paytm", "phonepe", "google pay", "gpay", "razorpay",
-    "cashfree", "pine labs", "bharatpe", "mobikwik", "payu", "billdesk",
-    "payment aggregator", "payment gateway", "merchant", "pos terminal",
-    "qr code", "e-rupee", "cbdc", "digital rupee", "remittance", "cross-border",
-    "tokenisation", "tokenization", "mdr", "fastag", "aeps", "upi lite",
-    "upi 123pay", "autopay", "e-mandate", "bnpl", "buy now pay later",
+    "payment", "upi", "npci", "neft", "rtgs", "imps", "bbps", "ach", "rtp",
+    "fednow", "sepa", "faster payments", "instant payment", "real-time payment",
+    "real time payment", "account-to-account", "account to account",
+    "payment rail", "payment rails", "rupay", "wallet", "prepaid", "ppi",
+    "payment system", "payment service", "payment provider", "payment platform",
+    "payment processor", "payment processing", "payment infrastructure",
+    "payments industry", "payment transaction", "payment transactions",
+    "credit card", "debit card", "card network", "card issuer", "card issuing",
+    "card acquirer", "card acquiring", "card payment", "card payments",
+    "interchange fee", "visa", "mastercard", "paytm", "phonepe", "google pay",
+    "gpay", "razorpay", "cashfree", "pine labs", "bharatpe", "mobikwik",
+    "payu", "billdesk", "payment aggregator", "payment gateway", "pos terminal",
+    "qr code", "e-rupee", "cbdc", "digital rupee", "remittance",
+    "cross-border payment", "cross border payment", "tokenisation",
+    "tokenization", "mdr", "fastag", "aeps", "upi lite", "upi 123pay",
+    "autopay", "e-mandate", "bnpl", "buy now pay later", "swift payment",
+    "swift network", "swift gpi", "iso 20022",
 ]

@@ -36,7 +36,7 @@ def test_news_api_returns_extracts_for_selected_window(monkeypatch):
         "items": [item.to_dict()],
         "warnings": [],
     }
-    assert requested == {"hours": 48, "limit": 5}
+    assert requested == {"hours": 48, "limit": None}
 
 
 def test_news_api_rejects_invalid_duration():
@@ -79,6 +79,6 @@ def test_homepage_and_stylesheet_are_served():
     stylesheet = client.get("/styles.css")
 
     assert homepage.status_code == 200
-    assert "Payment news extracts" in homepage.text
+    assert "Payments and cards related news" in homepage.text
     assert stylesheet.status_code == 200
     assert "text/css" in stylesheet.headers["content-type"]

@@ -4,6 +4,7 @@ import pytest
 import requests
 
 from payments_news import fetch as F
+from payments_news.sources import FEEDS
 
 FEED = (Path(__file__).parent / "fixtures" / "et_feed.xml").read_bytes()
 
@@ -43,6 +44,57 @@ def test_filters_to_payments_and_sorts_newest_first():
     ]
     assert items[0].summary == "The new limit applies to small-value transactions."  # HTML stripped
     assert items[0].published.isoformat() == "2026-10-07T04:00:00+00:00"
+
+
+def test_sources_cover_india_and_global_payments_publishers():
+    assert "Mint Industry" in FEEDS
+    assert "Mint Money" in FEEDS
+    assert "Financial Times Financial Services" in FEEDS
+    assert "Payments Dive" in FEEDS
+    assert "PYMNTS" in FEEDS
+
+
+def test_keeps_articles_from_payments_dive():
+    item = F.NewsItem(
+        "Payments business update",
+        "l",
+        None,
+        "",
+        "Payments Dive",
+    )
+
+    assert F.is_payments_story(item)
+
+
+def test_filters_off_topic_article_from_broad_pymnts_feed():
+    item = F.NewsItem(
+        "Apple Readies Launch of First Touchscreen MacBook",
+        "l",
+        None,
+        "The company is preparing its next-generation laptop.",
+        "PYMNTS",
+    )
+
+    assert not F.is_payments_story(item)
+
+
+def test_google_news_is_not_used_as_a_feed_source():
+    assert all("news.google.com" not in url for url in FEEDS.values())
+
+
+def test_parser_uses_article_publisher_and_removes_redundant_google_summary():
+    feed = b"""<?xml version="1.0"?>
+    <rss version="2.0"><channel><item>
+      <title>New UPI payment launch</title>
+      <link>https://news.google.com/rss/articles/story</link>
+      <description>New UPI payment launch Financial Times</description>
+      <source url="https://www.ft.com">Financial Times</source>
+    </item></channel></rss>"""
+
+    item = F.parse_feed(feed, "Financial Times search")[0]
+
+    assert item.source == "Financial Times"
+    assert item.summary == ""
 
 
 def test_respects_robots_txt():
@@ -152,5 +204,31 @@ def test_keeps_payment_story_that_mentions_immigration_context():
         "The update supports immigrants sending money home.",
         "ET Tech Fintech",
     )
+
+    assert F.is_payments_story(item)
+
+
+def test_excludes_generic_personal_finance_payment_story():
+    item = F.NewsItem(
+        "Missed a life insurance premium payment?",
+        "l",
+        None,
+        "A grace period applies before the policy can lapse.",
+        "Mint Money",
+    )
+
+    assert not F.is_payments_story(item)
+
+
+@pytest.mark.parametrize(
+    "headline",
+    [
+        "ACH real-time payments adoption expands",
+        "RTGS and RTP rails connect cross-border payments",
+        "New card issuer launches UPI wallet",
+    ],
+)
+def test_matches_payment_rails_cards_and_wallets(headline):
+    item = F.NewsItem(headline, "l", None, "", "Global source")
 
     assert F.is_payments_story(item)

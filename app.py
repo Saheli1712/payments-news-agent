@@ -29,13 +29,12 @@ async def read_stylesheet():
 @app.get("/api/news")
 def get_news(
     hours: float = Query(default=72, gt=0, le=720),
-    limit: int = Query(default=30, ge=1, le=50),
 ):
     errors: list[str] = []
     successful_feeds: list[str] = []
     items = fetch_payments_news(
         hours=hours,
-        limit=limit,
+        limit=None,
         errors=errors,
         successful_feeds=successful_feeds,
     )

@@ -5,6 +5,7 @@ from __future__ import annotations
 import html
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urljoin, urlparse
@@ -31,7 +32,7 @@ _SPECIFIC_PAYMENT_KEYWORD_RE = re.compile(
             (
                 keyword
                 for keyword in PAYMENTS_KEYWORDS
-                if keyword not in {"visa", "cross-border", "merchant"}
+                if keyword not in {"payment", "visa"}
             ),
             key=len,
             reverse=True,
@@ -43,6 +44,11 @@ _SPECIFIC_PAYMENT_KEYWORD_RE = re.compile(
 _WORK_VISA_RE = re.compile(
     r"\b(?:work\s+visas?|visa\s+holders?|employment\s+visa(?:\s+programmes?)?|"
     r"h[- ]?1b|immigration|permanent residency|green card)\b",
+    re.IGNORECASE,
+)
+_PERSONAL_FINANCE_RE = re.compile(
+    r"\b(?:income[- ]tax|tax penalty|tax case|tax department|insurance premium|"
+    r"life insurance|health insurance|home loan|down payment|co[- ]pay)\b",
     re.IGNORECASE,
 )
 
@@ -113,6 +119,8 @@ def is_payments_story(item: NewsItem) -> bool:
     text = f"{item.headline} {item.summary}"
     if _WORK_VISA_RE.search(text) and not _SPECIFIC_PAYMENT_KEYWORD_RE.search(text):
         return False
+    if _PERSONAL_FINANCE_RE.search(text) and not _SPECIFIC_PAYMENT_KEYWORD_RE.search(text):
+        return False
     return bool(_KEYWORD_RE.search(text))
 
 
@@ -125,7 +133,14 @@ def parse_feed(content: bytes | str, source: str) -> list[NewsItem]:
         title = clean_text(e.get("title", ""))
         link = e.get("link", "").strip()
         if title and link:
-            items.append(NewsItem(title, link, published, clean_text(e.get("summary", "")), source))
+            entry_source = clean_text(e.get("source", {}).get("title", "")) or source
+            summary = clean_text(e.get("summary", ""))
+            if (
+                summary.casefold().startswith(title.casefold())
+                and entry_source.casefold() in summary[len(title):].casefold()
+            ):
+                summary = ""
+            items.append(NewsItem(title, link, published, summary, entry_source))
     return items
 
 
@@ -156,20 +171,53 @@ def fetch_payments_news(
     successful_feeds: list[str] | None = None,
 ) -> list[NewsItem]:
     """Latest payments stories across ET feeds, newest first, de-duplicated."""
+    supplied_fetcher = fetcher is not None
     fetcher = fetcher or Fetcher()
     feeds = dict(feeds or FEEDS)
     errors = errors if errors is not None else []
     successful_feeds = successful_feeds if successful_feeds is not None else []
 
+    def fetch_group(group: list[tuple[str, str]], group_fetcher: Fetcher):
+        group_items: list[NewsItem] = []
+        group_errors: list[str] = []
+        group_successes: list[str] = []
+        for name, url in group:
+            try:
+                response = group_fetcher.get(url)
+                response.raise_for_status()
+                group_successes.append(name)
+                group_items.extend(parse_feed(response.content, name))
+            except (requests.RequestException, PermissionError) as exc:
+                group_errors.append(f"{name}: {exc}")
+        return group_items, group_errors, group_successes
+
     items: list[NewsItem] = []
-    for name, url in feeds.items():
-        try:
-            r = fetcher.get(url)
-            r.raise_for_status()
-            successful_feeds.append(name)
-            items.extend(parse_feed(r.content, name))
-        except (requests.RequestException, PermissionError) as exc:
-            errors.append(f"{name}: {exc}")
+    if supplied_fetcher:
+        groups = [[(name, url) for name, url in feeds.items()]]
+        fetchers = [fetcher]
+    else:
+        hosts: dict[str, list[tuple[str, str]]] = {}
+        for name, url in feeds.items():
+            host = "{0.scheme}://{0.netloc}".format(urlparse(url))
+            hosts.setdefault(host, []).append((name, url))
+        groups = list(hosts.values())
+        fetchers = [Fetcher(delay=fetcher.delay) for _ in groups]
+
+    if supplied_fetcher:
+        group_results = [fetch_group(groups[0], fetchers[0])]
+    else:
+        with ThreadPoolExecutor(max_workers=len(groups)) as executor:
+            group_results = list(
+                executor.map(
+                    lambda args: fetch_group(*args),
+                    zip(groups, fetchers),
+                )
+            )
+
+    for group_items, group_errors, group_successes in group_results:
+        items.extend(group_items)
+        errors.extend(group_errors)
+        successful_feeds.extend(group_successes)
 
     # If every configured feed failed (ET changed its feed IDs), try the RSS index.
     if not successful_feeds and discover:
