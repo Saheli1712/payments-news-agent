@@ -23,11 +23,19 @@ _KEYWORD_RE = re.compile(
     r"\b(" + "|".join(re.escape(k) for k in sorted(PAYMENTS_KEYWORDS, key=len, reverse=True)) + r")s?\b",
     re.IGNORECASE,
 )
-_PAYMENT_KEYWORD_RE = re.compile(
+_SPECIFIC_PAYMENT_KEYWORD_RE = re.compile(
     r"\b("
     + "|".join(
         re.escape(k)
-        for k in sorted((keyword for keyword in PAYMENTS_KEYWORDS if keyword != "visa"), key=len, reverse=True)
+        for k in sorted(
+            (
+                keyword
+                for keyword in PAYMENTS_KEYWORDS
+                if keyword not in {"visa", "cross-border", "merchant"}
+            ),
+            key=len,
+            reverse=True,
+        )
     )
     + r")s?\b",
     re.IGNORECASE,
@@ -103,7 +111,7 @@ def is_payments_story(item: NewsItem) -> bool:
     if item.source in PAYMENTS_ONLY_FEEDS:
         return True
     text = f"{item.headline} {item.summary}"
-    if _WORK_VISA_RE.search(text) and not _PAYMENT_KEYWORD_RE.search(text):
+    if _WORK_VISA_RE.search(text) and not _SPECIFIC_PAYMENT_KEYWORD_RE.search(text):
         return False
     return bool(_KEYWORD_RE.search(text))
 

@@ -169,7 +169,7 @@
           if (data.warnings.length) {
             const warning = document.createElement("p");
             warning.className = "warning";
-            warning.textContent = `Some feeds could not be reached; results may be incomplete. ${data.warnings.join("; ")}`;
+            warning.textContent = `Some feeds are temporarily unavailable (${data.warnings.join(", ")}). Results may be incomplete.`;
             status.append(warning);
           }
         } catch (error) {

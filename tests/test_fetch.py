@@ -130,3 +130,27 @@ def test_excludes_employment_visa_story_that_only_matches_the_visa_keyword():
     )
 
     assert not F.is_payments_story(item)
+
+
+def test_excludes_immigration_story_matching_only_cross_border_keyword():
+    item = F.NewsItem(
+        "Immigration, skilled talent mobility distinct: Nasscom as US suspends IT firms from green card programme",
+        "l",
+        None,
+        "The development adds uncertainty for tech outsourcers that rely on cross-border movement of skilled professionals.",
+        "ET Tech Fintech",
+    )
+
+    assert not F.is_payments_story(item)
+
+
+def test_keeps_payment_story_that_mentions_immigration_context():
+    item = F.NewsItem(
+        "UPI payments expand for cross-border remittances",
+        "l",
+        None,
+        "The update supports immigrants sending money home.",
+        "ET Tech Fintech",
+    )
+
+    assert F.is_payments_story(item)

@@ -55,7 +55,8 @@ def test_news_api_reports_feed_errors_when_all_feeds_fail(monkeypatch):
     response = client.get("/api/news")
 
     assert response.status_code == 502
-    assert "403 Forbidden" in response.json()["detail"]
+    assert "ET feed" in response.json()["detail"]
+    assert "403 Forbidden" not in response.json()["detail"]
 
 
 def test_news_api_returns_empty_result_and_warnings_for_partial_feed_failures(monkeypatch):
@@ -70,7 +71,7 @@ def test_news_api_returns_empty_result_and_warnings_for_partial_feed_failures(mo
 
     assert response.status_code == 200
     assert response.json()["count"] == 0
-    assert response.json()["warnings"] == ["ETBFSI: 403 Forbidden"]
+    assert response.json()["warnings"] == ["ETBFSI"]
 
 
 def test_homepage_and_stylesheet_are_served():
