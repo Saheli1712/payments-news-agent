@@ -12,10 +12,20 @@ FEEDS = {
     "ET Tech Fintech": "https://economictimes.indiatimes.com/tech/fintech/rssfeeds/78570530.cms",
     "Mint Industry": "https://www.livemint.com/rss/industry",
     "Mint Money": "https://www.livemint.com/rss/money",
+    "The Hindu Business": "https://www.thehindu.com/business/feeder/default.rss",
+    "The Hindu BusinessLine": "https://www.thehindubusinessline.com/feeder/default.rss",
+    "The Indian Express Business": "https://indianexpress.com/section/business/feed/",
+    "Times of India Business": "https://timesofindia.indiatimes.com/rssfeeds/1898055.cms",
     # Global financial and payment-industry publisher feeds
     "Financial Times Financial Services": "https://www.ft.com/rss/companies/financial-services",
     "Payments Dive": "https://www.paymentsdive.com/feeds/news/",
     "PYMNTS": "https://www.pymnts.com/feed/",
+    # General business desks from international newspapers
+    "BBC Business": "https://feeds.bbci.co.uk/news/business/rss.xml",
+    "The Guardian Business": "https://www.theguardian.com/business/rss",
+    "The New York Times Business": "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml",
+    "The Wall Street Journal Business": "https://feeds.a.dj.com/rss/RSSWSJD.xml",
+    "ABC Australia Business": "https://www.abc.net.au/news/feed/51120/rss.xml",
 }
 
 # Publisher feeds focused exclusively on the payment industry.

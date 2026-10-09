@@ -32,7 +32,7 @@ _SPECIFIC_PAYMENT_KEYWORD_RE = re.compile(
             (
                 keyword
                 for keyword in PAYMENTS_KEYWORDS
-                if keyword not in {"payment", "visa"}
+                if keyword not in {"payment", "visa", "cross-border payment", "cross border payment"}
             ),
             key=len,
             reverse=True,
@@ -42,13 +42,18 @@ _SPECIFIC_PAYMENT_KEYWORD_RE = re.compile(
     re.IGNORECASE,
 )
 _WORK_VISA_RE = re.compile(
-    r"\b(?:work\s+visas?|visa\s+holders?|employment\s+visa(?:\s+programmes?)?|"
+    r"\b(?:work\s+visas?|visa\s+(?:holders?|programmes?|programs?)|"
+    r"employment\s+visa(?:\s+programmes?)?|"
     r"h[- ]?1b|immigration|permanent residency|green card)\b",
     re.IGNORECASE,
 )
 _PERSONAL_FINANCE_RE = re.compile(
     r"\b(?:income[- ]tax|tax penalty|tax case|tax department|insurance premium|"
     r"life insurance|health insurance|home loan|down payment|co[- ]pay)\b",
+    re.IGNORECASE,
+)
+_CREDIT_CARD_METAPHOR_RE = re.compile(
+    r"\b(?:nation|country|government)(?:'s|’s)\s+credit\s+card\b",
     re.IGNORECASE,
 )
 
@@ -120,6 +125,8 @@ def is_payments_story(item: NewsItem) -> bool:
     if _WORK_VISA_RE.search(text) and not _SPECIFIC_PAYMENT_KEYWORD_RE.search(text):
         return False
     if _PERSONAL_FINANCE_RE.search(text) and not _SPECIFIC_PAYMENT_KEYWORD_RE.search(text):
+        return False
+    if _CREDIT_CARD_METAPHOR_RE.search(text):
         return False
     return bool(_KEYWORD_RE.search(text))
 

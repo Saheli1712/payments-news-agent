@@ -52,6 +52,15 @@ def test_sources_cover_india_and_global_payments_publishers():
     assert "Financial Times Financial Services" in FEEDS
     assert "Payments Dive" in FEEDS
     assert "PYMNTS" in FEEDS
+    assert "The Hindu Business" in FEEDS
+    assert "The Hindu BusinessLine" in FEEDS
+    assert "The Indian Express Business" in FEEDS
+    assert "Times of India Business" in FEEDS
+    assert "BBC Business" in FEEDS
+    assert "The Guardian Business" in FEEDS
+    assert "The New York Times Business" in FEEDS
+    assert "The Wall Street Journal Business" in FEEDS
+    assert "ABC Australia Business" in FEEDS
 
 
 def test_keeps_articles_from_payments_dive():
@@ -170,6 +179,21 @@ def test_excludes_work_visa_story_that_only_matches_the_visa_keyword():
     )
 
     assert not F.is_payments_story(item)
+
+
+def test_excludes_general_news_about_work_visa_programmes():
+    item = F.NewsItem(
+        "White House blocks Microsoft from foreign worker hiring programme",
+        "l",
+        None,
+        "An international visa programme allows US technology companies to hire workers from abroad.",
+        "BBC Business",
+    )
+
+    assert not F.is_payments_story(item)
+
+
+
     assert not F.is_payments_story(item)
 
 def test_excludes_employment_visa_story_that_only_matches_the_visa_keyword():
@@ -215,6 +239,18 @@ def test_excludes_generic_personal_finance_payment_story():
         None,
         "A grace period applies before the policy can lapse.",
         "Mint Money",
+    )
+
+    assert not F.is_payments_story(item)
+
+
+def test_excludes_credit_card_as_a_national_debt_metaphor():
+    item = F.NewsItem(
+        "Beware myths such as maxing out the nation’s credit card",
+        "l",
+        None,
+        "Readers respond to an article about economic policy.",
+        "The Guardian Business",
     )
 
     assert not F.is_payments_story(item)
